@@ -4,18 +4,18 @@
 
 ## Installation
 
-If [available in Hex](https://hex.pm/docs/publish), the package can be installed
-by adding `auto_sound_channel` to your list of dependencies in `mix.exs`:
+To use this bot:
+- Install Elixir
+- Edit config like below
 
 ```elixir
-def deps do
-  [
-    {:auto_sound_channel, "~> 0.1.0"}
-  ]
-end
+import Mix.Config
+
+config :nostrum,
+  token: "YOUR TOKEN", # The token of your bot as a string
+  num_shards: :auto # The number of shards you want to run your bot under, or :auto.
 ```
 
-Documentation can be generated with [ExDoc](https://github.com/elixir-lang/ex_doc)
-and published on [HexDocs](https://hexdocs.pm). Once published, the docs can
-be found at [https://hexdocs.pm/auto_sound_channel](https://hexdocs.pm/auto_sound_channel).
-
+- Do `mix deps.get`
+- Do `mix run --no-halt`
+- And you're ready to go!
