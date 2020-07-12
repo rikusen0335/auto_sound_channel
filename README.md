@@ -6,7 +6,7 @@
 
 To use this bot:
 - Install Elixir
-- Edit config like below
+- Make `dev.secret.exs` and edit it like below
 
 ```elixir
 import Mix.Config
