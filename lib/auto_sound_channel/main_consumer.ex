@@ -2,6 +2,7 @@ defmodule MainConsumer do
   use Nostrum.Consumer
 
   alias Nostrum.Api
+  alias AutoSoundChannel.RedisFunc
 
   def start_link do
     Consumer.start_link(__MODULE__)
@@ -11,12 +12,14 @@ defmodule MainConsumer do
 
     # guild_idも取らないといけないかも？
     case data.channel_id do
+      # TODO 指定チャンネルを可変に
       560328532316913664 ->
 
         user = data.member.user
         # 元のチャンネルの情報をとってくる
         origin_channel = elem(Api.get_channel(data.channel_id), 1)
         # 新しく作ったVCチャンネルの情報を格納する
+        # TODO カテゴリを可変に
         new_channel = elem(Api.create_guild_channel(data.guild_id, name: user.username, parent_id: 535378822607142914, type: 2), 1)
 
         # チャンネルを、作成チャンネルの下に移動
@@ -29,7 +32,7 @@ defmodule MainConsumer do
         IO.inspect(origin_channel)
 
       nil ->
-        # 削除しないといけない
+        # TODO 削除しないといけない
         :ignore
       _ ->
         :ignore
@@ -37,9 +40,22 @@ defmodule MainConsumer do
   end
 
   def handle_event({:MESSAGE_CREATE, message, _ws_state}) do
-    case message.content do
-      "!ping" ->
-        IO.inspect(Api.get_channel(535378822607142916))
+    cmd_list = String.split(message.content, " ")
+
+    # cmd_listの一番初め
+    case hd cmd_list do
+      ".asc" ->
+
+        if cmd_list[1] && cmd_list[2] do
+          category_id = cmd_list[1]
+          channel_id = cmd_list[2]
+
+          RedisFunc.add_primary_channel(channel_id)
+
+
+        else
+          Api.create_message(message.channel_id, content: "引数が足りません！カテゴリIDかチャンネルIDを正しく指定してください。")
+        end
 
       _ ->
         :ignore
