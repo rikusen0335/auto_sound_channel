@@ -2,12 +2,13 @@ defmodule AutoSoundChannel.Command do
   alias Nostrum.Api
   alias AutoSoundChannel.ErrorHandler
   alias AutoSoundChannel.Help
+  alias AutoSoundChannel.Repo
 
   @command_prefix ".asc"
 
   defp actionable_command?(message) do
     if message.author.bot == nil do
-      ErrorHandler.send_error(message, "コマンドを使用するには、こちら[#{API_URL}]でログインしてください。")
+      true
     end
   end
 
@@ -21,11 +22,12 @@ defmodule AutoSoundChannel.Command do
   end
 
   def execute([@command_prefix, "get"], message) do
-
+    IO.inspect AutoSoundChannel.SoundChannel |> AutoSoundChannel.Repo.all
   end
 
-  def execute([@command_prefix, "set", value], message) do
-
+  def execute([@command_prefix, "set", category_id, channel_id], message) do
+    channel = %AutoSoundChannel.SoundChannel{category_id: category_id, channel_id: channel_id}
+    Repo.insert!(channel)
   end
 
   def execute([@command_prefix, "ping"], message) do
@@ -56,12 +58,6 @@ defmodule AutoSoundChannel.Command do
   # If play wrong command
   def execute([@command_prefix], message), do: Help.help(message.channel_id)
   def execute([@command_prefix, _], message), do: Help.help(message.channel_id)
-  def execute(_, message), do: ErrorHandler.send_error(message, "コマンドまたは引数を指定してください")
+  def execute(_, message), do: :ignore
 
-
-  # Default event handler, if you don't include this, your consumer WILL crash if
-  # you don't have a method definition for each event type.
-  def handle_event(_event) do
-    :noop
-  end
 end

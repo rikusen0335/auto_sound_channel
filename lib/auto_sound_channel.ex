@@ -42,4 +42,8 @@ defmodule AutoSoundChannel do
         :ignore
     end
   end
+
+  def handle_event(_event) do
+    :noop
+  end
 end
