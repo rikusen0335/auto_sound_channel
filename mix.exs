@@ -23,7 +23,8 @@ defmodule AutoSoundChannel.MixProject do
   defp deps do
     [
       {:nostrum, "~> 0.4"},
-      {:redix, ">= 0.0.0"},
+      {:ecto_sql, "~> 3.0"},
+      {:postgrex, ">= 0.0.0"}
     ]
   end
 end

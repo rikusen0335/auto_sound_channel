@@ -7,7 +7,7 @@ defmodule AutoSoundChannel.Application do
 
   def start(_type, _args) do
     children = [
-      MainConsumer
+      AutoSoundChannel
       # Starts a worker by calling: AutoSoundChannel.Worker.start_link(arg)
       # {AutoSoundChannel.Worker, arg}
     ]
