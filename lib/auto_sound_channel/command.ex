@@ -1,8 +1,6 @@
 defmodule AutoSoundChannel.Command do
   alias Nostrum.Api
-  alias AutoSoundChannel.ErrorHandler
-  alias AutoSoundChannel.Help
-  alias AutoSoundChannel.Repo
+  alias AutoSoundChannel.{ErrorHandler, Help, Utils, Repo}
 
   @command_prefix ".asc"
 
@@ -21,28 +19,31 @@ defmodule AutoSoundChannel.Command do
     end
   end
 
-  def execute([@command_prefix, "get"], message) do
-    IO.inspect AutoSoundChannel.SoundChannel |> AutoSoundChannel.Repo.all
-  end
-
-  def execute([@command_prefix, "set", category_id, channel_id], message) do
-    channel = %AutoSoundChannel.SoundChannel{category_id: category_id, channel_id: channel_id}
-    Repo.insert!(channel)
-  end
-
   def execute([@command_prefix, "ping"], message) do
     Api.create_message(message, "pong!")
   end
 
-  def execute([@command_prefix, "add", _guild_id, _channel_id], message) do
+  def execute([@command_prefix, "get"], message) do
+    Utils.get_all_channels()
+  end
+
+  def execute([@command_prefix, "add", category_id, channel_id], message)
+    when is_nil(category_id)
+    when is_nil(channel_id) do
     ErrorHandler.send_error(message, "引数が足りません！カテゴリIDかチャンネルIDを正しく指定してください。")
   end
 
-  def execute([@command_prefix, "add", guild_id, channel_id], message) do
-    # TODO 作成用のチャンネルを追加する
+  def execute([@command_prefix, "add", category_id, channel_id], message) do
+    channel = %AutoSoundChannel.SoundChannel{category_id: category_id, channel_id: channel_id}
+    case Repo.insert(channel) do
+      {:ok, channel} ->
+        Api.create_message!(message, channel.channel_id <> "が登録されました。")
+    end
   end
 
-  def execute([@command_prefix, "remove", _guild_id, _channel_id], message) do
+  def execute([@command_prefix, "remove", category_id, channel_id], message)
+    when is_nil(category_id)
+    when is_nil(channel_id) do
     ErrorHandler.send_error(message, "引数が足りません！カテゴリIDかチャンネルIDを正しく指定してください。")
   end
 
@@ -56,8 +57,8 @@ defmodule AutoSoundChannel.Command do
 
 
   # If play wrong command
-  def execute([@command_prefix], message), do: Help.help(message.channel_id)
-  def execute([@command_prefix, _], message), do: Help.help(message.channel_id)
-  def execute(_, message), do: :ignore
+  def execute([@command_prefix], message), do: Help.help(message)
+  def execute([@command_prefix, _], message), do: Help.help(message)
+  def execute(_, _message), do: :ignore
 
 end
