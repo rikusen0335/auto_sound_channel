@@ -15,24 +15,36 @@ defmodule AutoSoundChannel do
   def handle_event({:VOICE_STATE_UPDATE, data, _ws_state}) do
 
     IO.inspect(data)
+    # TODO チャンネルを消したときに、removeするようにする
 
-    if data.channel_id != nil do
-      if Utils.is_specific_channel(data.channel_id) do
+    cond do
+      data.channel_id != nil ->
+        if Utils.is_specific_channel(data.channel_id) do
 
-        user = data.member.user
+          user = data.member.user
+          with {:ok, origin_channel} <- Api.get_channel(data.channel_id),
+              {:ok, new_channel} <- Api.create_guild_channel(data.guild_id, name: user.username, parent_id: origin_channel.parent_id, type: 2)
+          do
+            # チャンネルを、作成チャンネルの下に移動
+            Api.modify_guild_channel_positions(origin_channel.guild_id, [%{id: new_channel.id, position: origin_channel.position}])
+            # ユーザーを新チャンネルに移動
+            Api.modify_guild_member(origin_channel.guild_id, user.id, channel_id: new_channel.id)
 
-        with {:ok, origin_channel} <- Api.get_channel(data.channel_id),
-             {:ok, new_channel} <- Api.create_guild_channel(data.guild_id, name: user.username, parent_id: 535378822607142914, type: 2)
-        do
-          # チャンネルを、作成チャンネルの下に移動
-          Api.modify_guild_channel_positions(origin_channel.guild_id, [%{id: new_channel.id, position: origin_channel.position}])
-          # ユーザーを新チャンネルに移動
-          Api.modify_guild_member(origin_channel.guild_id, user.id, channel_id: new_channel.id)
+            Utils.add_temp_channel(new_channel.guild_id, new_channel.id)
+            IO.inspect(Utils.get_all_temp_channels())
+          end
         end
-      end
-    else if data.channel_id == nil do
-      # TODO データに含まれるギルドIDの登録チャンネルを精査して、人がいないチャンネルを削除する
-    end
+
+      data.channel_id == nil ->
+        # TODO データに含まれるギルドIDの登録チャンネルを精査して、人がいないチャンネルを削除する
+
+
+        if Utils.is_specific_temp_channel(data.guild_id, data.channel_id) do
+          IO.puts("Delete temp channel")
+          Api.delete_channel(data.channel_id)
+        end
+
+      true -> :ignore
     end
   end
 

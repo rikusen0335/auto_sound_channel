@@ -23,8 +23,10 @@ defmodule AutoSoundChannel.Command do
     Api.create_message(message, "pong!")
   end
 
-  def execute([@command_prefix, "get"], message) do
-    Utils.get_all_channels()
+  def execute([@command_prefix, "get", channel_id], message) do
+    elem(Integer.parse(channel_id), 0)
+      |> Api.get_channel()
+      |> IO.inspect()
   end
 
   def execute([@command_prefix, "add", category_id, channel_id], message)
@@ -34,10 +36,8 @@ defmodule AutoSoundChannel.Command do
   end
 
   def execute([@command_prefix, "add", category_id, channel_id], message) do
-    channel = %AutoSoundChannel.SoundChannel{category_id: category_id, channel_id: channel_id}
-    case Repo.insert(channel) do
-      {:ok, channel} ->
-        Api.create_message!(message, channel.channel_id <> "が登録されました。")
+    case Utils.add_channel(category_id, channel_id) do
+      {:ok, channel} -> Api.create_message!(message, channel.channel_id <> "が登録されました。")
     end
   end
 
